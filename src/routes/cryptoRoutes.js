@@ -1,17 +1,32 @@
-const express = require("express");
-const axios = require("axios");
+const express = require('express');
 const router = express.Router();
+const Crypto = require('../models/Crypto');
 
-router.get("/", async (req, res) => {
+// Get all cryptocurrencies
+router.get('/', async (req, res) => {
   try {
-    const response = await axios.get(
-      "https://api.coingecko.com/api/v3/coins/markets",
-      { params: { vs_currency: "usd", order: "market_cap_desc", per_page: 10 } }
-    );
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch crypto data" });
+    const cryptos = await Crypto.find();
+    res.json(cryptos);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Add a new cryptocurrency
+router.post('/', async (req, res) => {
+  const crypto = new Crypto({
+    symbol: req.body.symbol,
+    name: req.body.name,
+    price: req.body.price,
+  });
+
+  try {
+    const newCrypto = await crypto.save();
+    res.status(201).json(newCrypto);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
 module.exports = router;
+

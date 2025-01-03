@@ -1,15 +1,30 @@
-const express = require("express");
-const axios = require("axios");
+const express = require('express');
 const router = express.Router();
+const Stock = require('../models/Stock');
 
-router.get("/", async (req, res) => {
+// Get all stocks
+router.get('/', async (req, res) => {
   try {
-    const response = await axios.get(
-      `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${req.query.symbol}&apikey=${process.env.ALPHA_VANTAGE_KEY}`
-    );
-    res.json(response.data);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch stock data" });
+    const stocks = await Stock.find();
+    res.json(stocks);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Add a new stock
+router.post('/', async (req, res) => {
+  const stock = new Stock({
+    symbol: req.body.symbol,
+    name: req.body.name,
+    price: req.body.price,
+  });
+
+  try {
+    const newStock = await stock.save();
+    res.status(201).json(newStock);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
